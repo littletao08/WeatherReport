@@ -85,7 +85,7 @@ public class weatherUtil {
             e.printStackTrace();
             Log.e("执行内部", "连接失败");
         }
-        Log.e("执行内部","读取数据4");
+        Log.e("执行内部","读取数据5"+result);
         return result;
     }
 }

@@ -36,15 +36,12 @@ public class MainActivity extends AppCompatActivity {
     //确认进行输出结果
     private Button btn_search;
 
-    String result;
-
+    public  String result;
+    static MyHandler myhandler;
 
 
     static class MyHandler extends Handler {
-        /*
-        //注意下面的“PopupActivity”类是MyHandler类所在的外部类，
-        即所在的activity WeakReference<PopupActivity>  mActivity;
-        */
+
         WeakReference<MainActivity> mActivity;
         MyHandler(MainActivity activity) {
             mActivity = new WeakReference<MainActivity>(activity);
@@ -53,14 +50,24 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             MainActivity theActivity = mActivity.get();
             if(msg.what==1233){
-                new Thread(
-
-                ).start();
-                theActivity.connectInternet();
+                theActivity.tv_show.setText(theActivity.result + "hello");
             }
         }
     }
 
+
+    class MyThread extends Thread {
+        public void run() {
+            /*
+            * 得到返回结果
+            * */
+            result=weatherUtil.getResult(string_city);
+
+            myhandler.sendEmptyMessage(1233);
+
+
+        }
+    }
 
 
 
@@ -70,8 +77,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initView();
-
-        final MyHandler myhandler=new MyHandler(this);
+        //这个可以在oncreat方法里
+        myhandler=new MyHandler(this);
+//这个写在调用的方法的地方
 
 
         btn_search.setOnClickListener(new OnClickListener() {
@@ -79,21 +87,15 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //读取editview里面的内容
                 string_city = et_city.getText().toString();
-                myhandler.sendEmptyMessage(1233);
+                MyThread myThread=new MyThread();
+                myThread.start();
 
             }
         });
-    }
-
-    private void connectInternet(){
-        result=weatherUtil.getResult(string_city);
-
-        Log.e("city",string_city);
-        Log.e("result",result+"nihao ");
-
-        tv_show.setText(result+"hello");
 
     }
+
+
 
 
     /*

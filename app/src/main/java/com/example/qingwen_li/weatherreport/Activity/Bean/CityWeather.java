@@ -106,4 +106,8 @@ public class CityWeather {
                 this.city = city;
         }
 
+        @Override
+        public String toString() {
+                return "城市名"+city+"\n"+"日期"+date+"天气情况"+weather;
+        }
 }

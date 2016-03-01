@@ -3,7 +3,11 @@ package com.example.qingwen_li.weatherreport.Activity.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.OrientationHelper;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -11,37 +15,33 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
+import com.example.qingwen_li.weatherreport.Activity.Adapters.Adapter_CityWeather;
+import com.example.qingwen_li.weatherreport.Activity.Bean.CityWeather;
 import com.example.qingwen_li.weatherreport.Activity.Utils.weatherUtil;
 import com.example.qingwen_li.weatherreport.R;
-
-import org.json.JSONObject;
-
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     //用于获取所要查询的城市
     private EditText et_city;
     //用于发送请求的时候使用
     private String string_city;
-    //用于访问地址
-    private String realUrl;
-
     //用于输出结果
     private  TextView tv_show;
     //确认进行输出结果
     private Button btn_search;
-
     public  String result;
     static MyHandler myhandler;
 
+    SwipeRefreshLayout swipe;
+    RecyclerView myRecycleview;
+
+    private List<CityWeather> mDatas;
+    private Adapter_CityWeather mAdapter;
+
 
     static class MyHandler extends Handler {
-
         WeakReference<MainActivity> mActivity;
         MyHandler(MainActivity activity) {
             mActivity = new WeakReference<MainActivity>(activity);
@@ -54,34 +54,22 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
-
     class MyThread extends Thread {
         public void run() {
-            /*
-            * 得到返回结果
-            * */
+            string_city = et_city.getText().toString();
             result=weatherUtil.getResult(string_city);
-
             myhandler.sendEmptyMessage(1233);
-
-
         }
     }
-
-
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         initView();
+        initData();
         //这个可以在oncreat方法里
         myhandler=new MyHandler(this);
-//这个写在调用的方法的地方
-
-
         btn_search.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,51 +77,40 @@ public class MainActivity extends AppCompatActivity {
                 string_city = et_city.getText().toString();
                 MyThread myThread=new MyThread();
                 myThread.start();
-
             }
         });
-
     }
-
-
-
-
-    /*
-    private void connectInternet() {
-        Log.e("show", string_city);
-        realUrl= weatherUtil.getSend(string_city);
-
-        //网络请求
-
-        RequestQueue mQueue = Volley.newRequestQueue(MainActivity.this);
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(realUrl,
-                null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.e("real Responce", realUrl);
-                        Log.e("TAG  Response", response.toString());
-                        tv_show.setText(response.toString());
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("TAG", error.getMessage(), error);
-            }
-        });
-        mQueue.add(jsonObjectRequest);
+/*
+* 初始化数据
+* */
+    private void initData() {
+        CityWeather cw= weatherUtil.cityToJson(string_city);
+        mDatas.add(cw);
     }
-*/
 
     private void  initView() {
         et_city=(EditText)findViewById(R.id.et_city);
         tv_show=(TextView)findViewById(R.id.tv_show);
         btn_search=(Button)findViewById(R.id.btn_search);
+        myRecycleview= (RecyclerView) findViewById(R.id.recycler_view);
+        myRecycleview.setLayoutManager(new StaggeredGridLayoutManager(2, OrientationHelper.VERTICAL));//这里用线性宫格显示 类似于瀑布流
 
+        swipe= (SwipeRefreshLayout) findViewById(R.id.swipe);
+
+        mAdapter=new Adapter_CityWeather(this,mDatas);
+
+        /*
+        * 保持刷新
+        * */
+        swipe.setColorSchemeResources(R.color.colorPrimary);
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                swipe.setRefreshing(true);
+                Log.e("Swipe", "Refreshing Number");
+            }
+        });
+        myRecycleview.setAdapter(mAdapter);
     }
-
-
-
 
 }

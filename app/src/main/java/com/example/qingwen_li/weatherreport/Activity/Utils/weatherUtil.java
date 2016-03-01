@@ -9,6 +9,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.qingwen_li.weatherreport.Activity.Activity.MainActivity;
 import com.example.qingwen_li.weatherreport.Activity.Bean.CityWeather;
+import com.example.qingwen_li.weatherreport.Activity.Nets.NetUrl;
 
 import org.json.JSONObject;
 
@@ -26,15 +27,13 @@ import java.net.URLEncoder;
 
 public class weatherUtil {
 
-    static String httpArg = "citypinyin=beijing";
-    static String ak="18e97d8e339a7cedcc5591f27232ac6b";
-    static String httpUrl = "http://apis.baidu.com/apistore/weatherservice/weather";
+
     public static String result;
+    private static String httpUrl;
 
     /*
     * 用于存储城市天气的各种数据
     *
-
     String city;//城市
     int citycode;//编码
     String date;//日期
@@ -46,35 +45,51 @@ public class weatherUtil {
     int h_tmp;//最高温度
     String WD;//风向
     String WS;//风力
-
 */
+
+    public static  CityWeather cityToJson(String city){
+        return dealJson(getResult(city));
+    }
+
 
     /*用于得到最后结果*/
     public static String getResult(String city){
         BufferedReader reader = null;
         StringBuffer sbf = new StringBuffer();
-        httpUrl = httpUrl + "?" +httpArg;
-      //  httpUrl = httpUrl + "?" +"cityname="+city;
-
+        httpUrl = NetUrl.httpUrl + "?" +NetUrl.httpArg;
+        Log.e("url",httpUrl);
             try {
-                URL url = new URL(httpUrl);
+                Log.e("open url","进入try  catch块");
+                URL url = new URL(NetUrl.httpUrl);
+                Log.e("connect1","connection connect");
                 HttpURLConnection connection = (HttpURLConnection) url
                         .openConnection();
+                Log.e("connect2","connection connect");
                 connection.setRequestMethod("GET");
                 // 填入apikey到HTTP header
-                connection.setRequestProperty("apikey", ak);
+                Log.e("connect3","connection connect");
+                connection.setRequestProperty("apikey", NetUrl.ak);
+                Log.e("connect4", "connection connect");
+
+ //代码报错的地方
                 connection.connect();
+                Log.e("connect5","connection connect");
                 InputStream is = connection.getInputStream();
                 reader = new BufferedReader(new InputStreamReader(is, "utf-8"));
                 String strRead = null;
+                Log.e("strRead", "初始化strReader");
                 while ((strRead = reader.readLine()) != null) {
                     sbf.append(strRead);
                     sbf.append("\r\n");
+                    Log.e("sbf,append", "sbf读取数据");
                 }
                 reader.close();
                 result = sbf.toString();
+                Log.e("close reader",result);
         } catch (Exception e) {
             e.printStackTrace();
+
+                Log.e("catch","网络连接异常");
         }
         Log.e("执行内部","读取数据5"+result);
         return decodeUnicode(result);
